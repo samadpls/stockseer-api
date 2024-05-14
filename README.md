@@ -2,18 +2,18 @@
 
 This project is a FastAPI application that predicts the closing stock price for a given company based on user-specified parameters. It utilizes various machine learning models for prediction, including:
 
-* RandomForestRegressor
-* ExtraTreesRegressor
-* XGBRegressor
-* LinearRegression
-* KNeighborsRegressor
-* LSTM implementation
+* RandomForestRegressor 🌳
+* ExtraTreesRegressor 🌲
+* XGBRegressor 🚀
+* LinearRegression ➖
+* KNeighborsRegressor 🤝
+* LSTM implementation 🔄
 
 ## Data Source:
 
 This application utilizes the Yahoo Finance API to retrieve historical stock data for training and prediction purposes.
 
-## Features
+## Features✨
 
 * Download and preprocess historical stock data
 * Train a stock price prediction model of your choice
@@ -44,6 +44,7 @@ The documentation provides instructions on interacting with the API to make pred
 
 
 ## Working Prototype
+![image](https://github.com/samadpls/stockseer-api/assets/94792103/f9c046ea-3c72-4b09-84e1-5994ce0c0a47)
 
 
 
