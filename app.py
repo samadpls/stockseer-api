@@ -106,9 +106,9 @@ def train_model(data, model_type="RandomForestRegressor", training_split=0.95):
     else:
         # Scikit-learn models
         if model_type == "LinearRegression":
-            model = LinearRegression(random_state=42)
+            model = LinearRegression()
         elif model_type == "KNeighborsRegressor":
-            model = KNeighborsRegressor(n_estimators=100, random_state=42)
+            model = KNeighborsRegressor()
         elif model_type == "XGBRegressor":
             model = XGBRegressor()
         elif model_type == "RandomForestRegressor":
@@ -180,6 +180,7 @@ async def predict_stock_price(
         train = data[:training_data_len]
         valid = data[training_data_len:]
         valid['Predictions'] = predictions
+        valid['Predictions'] = valid['Predictions'].apply(lambda x: x.item() if isinstance(x, np.generic) else x)
 
         plt.figure(figsize=(16, 6))
         plt.title(f"{company} Model")
