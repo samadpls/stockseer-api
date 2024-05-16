@@ -42,15 +42,15 @@ def download_and_preprocess_data(company, time_diff_unit):
 
     # Set default maximum download period based on time_diff_unit
     if time_diff_unit.lower() == 'days':
-        max_period = 60
+        max_period = 365*10
         start = end - timedelta(days=max_period)
     elif time_diff_unit.lower() in ('hours', 'minutes'):
-        max_period = int(7 * 24 * 60)
-        start = end - timedelta(minutes=max_period)
+        max_period = 7
     else:
         raise ValueError(
             "Unexpected error: invalid time_diff_unit after validation.")
-
+    
+    start = end - timedelta(days=max_period)
     # Download data for the maximum period
 
     print(
@@ -68,18 +68,17 @@ def download_and_preprocess_data(company, time_diff_unit):
         return pd.DataFrame()
 
     data["company_name"] = company
-
     return data.filter(["Close"])
 
 
 # train a stock price prediction model
 
 
-def train_model(data, model_type="RandomForestRegressor", training_split=0.8):
+def train_model(data, model_type="RandomForestRegressor", training_split=0.95):
 
     dataset = data.values
 
-    training_data_len = int(len(dataset) * 0.95)
+    training_data_len = int(len(dataset) * training_split)
 
     scaler = MinMaxScaler(feature_range=(0, 1))
     scaled_data = scaler.fit_transform(dataset)
@@ -120,18 +119,11 @@ def train_model(data, model_type="RandomForestRegressor", training_split=0.8):
             raise ValueError(f"Invalid model type: {model_type}")
         model.fit(x_train, y_train)
 
-    test_data = scaled_data[training_data_len - 60:, :]
-    x_test = []
-    for i in range(60, len(test_data)):
-        x_test.append(test_data[i-60:i, 0])
-
-    # Convert the data to a numpy array
-    x_test = np.array(x_test)
-    return model, data, scaled_data, scaler, training_data_len
+    return model, scaled_data, scaler, training_data_len
 
 
 # predictions
-def make_predictions(model, data, scaled_data, scaler, training_data_len):
+def make_predictions(model, scaled_data, scaler, training_data_len):
 
     test_data = scaled_data[training_data_len - 60:, :]
     x_test = []
@@ -148,7 +140,7 @@ def make_predictions(model, data, scaled_data, scaler, training_data_len):
     return predictions
 
 
-@app.post("/predict")
+@app.post("/api/predict")
 async def predict_stock_price(
     company: str = Body(default="GOOG", description="The stock ticker symbol"),
     time_diff_value: str = Query(
@@ -164,7 +156,7 @@ async def predict_stock_price(
     Predicts the closing stock price for a given company based on user-specified parameters.
 
     Args:
-        company (str, optional): The stock ticker symbol. Defaults to "MSFT".
+        company (str, optional): The stock ticker symbol. Defaults to "GOOG".
         time_diff_unit (str, optional): The time difference unit (days, hours, minutes).
         Defaults to "days".
         model_type (str, optional): The model type to use for prediction
@@ -179,10 +171,10 @@ async def predict_stock_price(
     try:
         data = download_and_preprocess_data(
             company, time_diff_value)
-        model, data, scaled_data, scaler, training_data_len = train_model(
+        model, scaled_data, scaler, training_data_len = train_model(
             data, model_type)
         predictions = make_predictions(
-            model, data, scaled_data, scaler, training_data_len)
+            model, scaled_data, scaler, training_data_len)
         # Plot the data
         training_data_len = int(len(data) * 0.95)
         train = data[:training_data_len]
