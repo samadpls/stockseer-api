@@ -60,7 +60,7 @@ The documentation provides instructions on interacting with the API to make pred
 
 ## Credits
 
-* **Maira Usman:**  Developed the GUI for this project. You can find the code here: [Link to StockSeer-GUI](https://github.com/myrausman/).
+* **Maira Usman:**  Developed the GUI for this project. You can find the code here: [Link to StockSeer-GUI](https://github.com/Myrausman/StockSeer-Frontend).
 
 ## Disclaimer
 
