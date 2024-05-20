@@ -8,6 +8,8 @@ from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import KNeighborsRegressor
 from xgboost import XGBRegressor
 from fastapi import FastAPI, Body, Query
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from keras.models import Sequential
 from keras.layers import Dense, LSTM
 
@@ -16,7 +18,19 @@ import numpy as np
 
 app = FastAPI()
 
-# Function to download and preprocess stock data
+origins = [
+    "http://localhost",
+    "http://localhost:8080",
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 def download_and_preprocess_data(company, time_diff_unit):
@@ -49,7 +63,7 @@ def download_and_preprocess_data(company, time_diff_unit):
     else:
         raise ValueError(
             "Unexpected error: invalid time_diff_unit after validation.")
-    
+
     start = end - timedelta(days=max_period)
     # Download data for the maximum period
 
@@ -142,14 +156,15 @@ def make_predictions(model, scaled_data, scaler, training_data_len):
 
 @app.post("/api/predict")
 async def predict_stock_price(
-    company: str = Body(default="GOOG", description="The stock ticker symbol"),
+    company: str = Query(
+        default="GOOG", description="The stock ticker symbol"),
     time_diff_value: str = Query(
         default="days", description="Time difference unit (days, hours, minutes)"
     ),
     model_type: str = Query(
         default="RandomForestRegressor",
         description="Model type ( RandomForestRegressor, ExtraTreesRegressor,"
-        'XGBRegressor, LinearRegression, KNeighborsRegressor, or LSTM implementation)',
+        'XGBRegressor, LinearRegression, KNeighborsRegressor, or LSTM)',
     ),
 ):
     """
@@ -169,6 +184,7 @@ async def predict_stock_price(
     """
 
     try:
+        print("company-->", company)
         data = download_and_preprocess_data(
             company, time_diff_value)
         model, scaled_data, scaler, training_data_len = train_model(
@@ -180,7 +196,8 @@ async def predict_stock_price(
         train = data[:training_data_len]
         valid = data[training_data_len:]
         valid['Predictions'] = predictions
-        valid['Predictions'] = valid['Predictions'].apply(lambda x: x.item() if isinstance(x, np.generic) else x)
+        valid['Predictions'] = valid['Predictions'].apply(
+            lambda x: x.item() if isinstance(x, np.generic) else x)
 
         plt.figure(figsize=(16, 6))
         plt.title(f"{company} Model")
@@ -188,17 +205,22 @@ async def predict_stock_price(
         plt.plot(train["Close"])
         plt.plot(valid[["Close", "Predictions"]])
         plt.legend(["Train", "Val", "Predictions"], loc="lower right")
-        plt.savefig("prediction_plot.png")
+        image_path = "prediction_plot.png"
+        plt.savefig(image_path)
         plt.close()
 
         return {
             "company": company,
             "validation_table": valid,
-            "plot_image": "prediction_plot.png",
+            "plot_image": f"/image/{image_path}",
         }
     except Exception as e:
         return {"message": f"Error occurred: {str(e)}"}
 
+
+@app.get("/image/{filename}")
+async def serve_image(filename: str):
+    return FileResponse(f'{filename}')
 
 if __name__ == "__main__":
     import uvicorn
