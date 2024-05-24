@@ -58,7 +58,9 @@ def download_and_preprocess_data(company, time_diff_unit):
     if time_diff_unit.lower() == 'days':
         max_period = 365*10
         start = end - timedelta(days=max_period)
-    elif time_diff_unit.lower() in ('hours', 'minutes'):
+    elif time_diff_unit.lower() == 'hours':
+        max_period = 60
+    elif time_diff_unit.lower() == 'minutes':
         max_period = 7
     else:
         raise ValueError(
@@ -68,7 +70,7 @@ def download_and_preprocess_data(company, time_diff_unit):
     # Download data for the maximum period
 
     print(
-        f"Downloading data for {company} (up to {max_period} {time_diff_unit})...")
+        f"Downloading data for {company} (up to day {max_period} with interval {time_diff_unit})...")
     if time_diff_unit.lower() == 'minutes':
         interval = '1m'
     elif time_diff_unit.lower() == 'hours':
@@ -82,6 +84,7 @@ def download_and_preprocess_data(company, time_diff_unit):
         return pd.DataFrame()
 
     data["company_name"] = company
+    print(data)
     return data.filter(["Close"])
 
 
@@ -200,7 +203,7 @@ async def predict_stock_price(
             lambda x: x.item() if isinstance(x, np.generic) else x)
 
         plt.figure(figsize=(16, 6))
-        plt.title(f"{company} Model")
+        plt.title(f"{model_type} Model")
         plt.ylabel("Close Price USD ($)", fontsize=18)
         plt.plot(train["Close"])
         plt.plot(valid[["Close", "Predictions"]])
