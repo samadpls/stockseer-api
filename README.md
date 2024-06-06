@@ -10,7 +10,6 @@ This project is a FastAPI application that predicts the closing stock price for 
 
 * RandomForestRegressor 🌳
 * ExtraTreesRegressor 🌲
-* XGBRegressor 🚀
 * LinearRegression ➖
 * KNeighborsRegressor 🤝
 * LSTM implementation 🔄
