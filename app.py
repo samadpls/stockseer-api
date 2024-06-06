@@ -104,8 +104,9 @@ def train_model(data, model_type="RandomForestRegressor", training_split=0.95):
     # Split the data into x_train and y_train data sets
     x_train = []
     y_train = []
-    for i in range(60, len(train_data)):
-        x_train.append(train_data[i-60:i, 0])
+    window_size = int(training_data_len * 0.05)
+    for i in range(window_size, len(train_data)):
+        x_train.append(train_data[i-window_size:i, 0])
         y_train.append(train_data[i, 0])
 
     # Convert the x_train and y_train to numpy arrays
@@ -142,11 +143,11 @@ def train_model(data, model_type="RandomForestRegressor", training_split=0.95):
 # predictions
 def make_predictions(model, scaled_data, scaler, training_data_len):
 
-    test_data = scaled_data[training_data_len - 60:, :]
+    window_size = int(training_data_len * 0.05)
+    test_data = scaled_data[training_data_len - window_size:, :]
     x_test = []
-    for i in range(60, len(test_data)):
-
-        x_test.append(test_data[i-60:i, 0])
+    for i in range(window_size, len(test_data)):
+        x_test.append(test_data[i-window_size:i, 0])
 
     # Convert the data to a numpy array
     x_test = np.array(x_test)
